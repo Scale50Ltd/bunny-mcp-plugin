@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "bunny": {
+      "type": "http",
+      "url": "https://ads-dashboard-scale50.vercel.app/api/agent/mcp",
+      "headers": { "Authorization": "Bearer ${BUNNY_MCP_TOKEN}" }
+    }
+  }
+}

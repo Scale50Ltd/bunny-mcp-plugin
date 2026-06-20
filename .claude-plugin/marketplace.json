@@ -1,0 +1,11 @@
+{
+  "name": "bunny-mcp-plugin",
+  "owner": { "name": "Scale50" },
+  "plugins": [
+    {
+      "name": "bunny",
+      "source": "./",
+      "description": "Project Bunny operator: orientation skill + Bunny MCP server."
+    }
+  ]
+}
