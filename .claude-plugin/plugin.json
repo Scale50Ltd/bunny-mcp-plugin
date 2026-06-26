@@ -1,7 +1,7 @@
 {
   "name": "bunny",
-  "description": "Operate Project Bunny: orientation for agents plus the Bunny MCP tools (find, read, draft, and hand off bunnies for human approval).",
-  "version": "0.1.0",
+  "description": "Operate Project Bunny: orientation for agents plus the Bunny MCP tools (find, add, read, draft, promote, delete/restore, and hand off bunnies for human approval).",
+  "version": "0.2.0",
   "author": { "name": "Scale50" },
   "homepage": "https://github.com/Scale50Ltd/bunny-mcp-plugin",
   "repository": "https://github.com/Scale50Ltd/bunny-mcp-plugin",
