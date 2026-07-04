@@ -1,6 +1,6 @@
 ---
 name: bunny-operator
-description: Operate Project Bunny — find, add, research, draft, promote, and delete "bunnies" (candidate solutions to build) via the Bunny MCP tools. Use when the user asks to work on a bunny, add/create a bunny from an idea, do Phase-3 / deep research on a bunny, promote a bunny or generate its Phase-2 docs, delete/restore a bunny, look at Project Bunny ideas, or mentions Project Bunny / the Bunny Trail.
+description: Operate Project Bunny — find, add, research, draft, promote, score, and delete "bunnies" (candidate solutions to build) via the Bunny MCP tools. Use when the user asks to work on a bunny, add/create a bunny from an idea, do Phase-3 / deep research on a bunny, promote a bunny or generate its Phase-2 docs, score/re-score a bunny, delete/restore a bunny, look at Project Bunny ideas, or mentions Project Bunny / the Bunny Trail.
 ---
 
 # Operating Project Bunny
@@ -31,7 +31,8 @@ You operate on the **live** phases (3 and 4). The conveyor advances a bunny 3 �
 Beyond research, four tools manage a bunny's lifecycle. The create/promote/delete tools act **on the user's behalf** — for promote and delete you **ask the user first and only act on an explicit yes** (the server cannot verify consent; the discipline is yours).
 
 - **`add_bunny`** — create a new bunny from a person's submission (a messy blob, a solution idea, or a problem/complaint). An AI structures it into a rich bunny and creates it at stage `captured`. If it looks like an existing bunny, the tool **warns** instead of creating — relay that, and only re-call with `confirmDuplicate: true` if the user wants it added anyway. No fabrication still applies: the AI grounds the bunny in what the user actually wrote.
-- **`promote_bunny`** — **ask the user first.** Generates the bunny's solution, rubric-scores it, and (if it screens in) moves it to screening + **phase 3 (EVIDENCE)** and kicks off the Phase-2 documents (which generate asynchronously — fetch them with `get_documents` a moment later). If the rubric would screen the bunny **out**, the tool returns `screened_out_pending` and changes nothing — relay the verdict to the user and only re-call with `force: true` if they confirm. **Never promotes past phase 3.**
+- **`promote_bunny`** — **ask the user first.** Generates the bunny's solution, screens it in to **phase 3 (EVIDENCE)**, and kicks off the Phase-2 documents (which generate asynchronously — fetch them with `get_documents` a moment later). Promote **does not score and does not screen anything out** (there is no `force` and no auto-kill anymore). **Never promotes past phase 3.**
+- **`score_bunny`** — a **separate, advisory** rubric run. Once the Phase-2 documents exist and a human has finalized them, this scores the bunny **over those documents** (preferring the human-finalized ones) and records a verdict. It is **re-runnable** and **never advances, screens out, or blesses anything** — the verdict is advice for a human, not a gate. Scoring before the docs are finalized returns a **provisional** result, so prefer to score after a human finalizes them; a human decides what to do with any verdict (including clearing it in the dashboard).
 - **`delete_bunny`** — **confirm with the user first.** Soft-deletes (archives) a bunny: it disappears from search, the cockpit views, and duplicate detection, but **no data is destroyed**. Fully reversible.
 - **`restore_bunny`** — un-archives a previously deleted bunny so it reappears.
 
