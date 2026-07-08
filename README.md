@@ -7,7 +7,8 @@ Orientation + tools for operating **Project Bunny** from Claude Code (and a docu
 ## Skills
 
 - **`bunny-operator`** — core orientation: find/add/promote/delete bunnies, the research loop, the hard rules. Read this first.
-- **`bunny-deep-researcher`** — Phase-3 (EVIDENCE) playbook: writes the four Phase-3 documents (`deep_research`, `marketing_plan`, `value_ladder`, `final_evaluation_rubric`) from live server templates, one Sonnet sub-agent per document, then hands off to a human for review/finalize and an advisory `score_bunny`. v1 is documents-first only — the Expert QA Panel / decision-point / revision-loop flow from the full Phase-3 playbook is deferred to v2.
+- **`bunny-deep-researcher`** — Phase-3 (EVIDENCE) playbook: writes the four Phase-3 documents (`deep_research`, `marketing_plan`, `value_ladder`, `final_evaluation_rubric`) from live server templates, one Sonnet sub-agent per document, then runs the Expert QA Panel → human decision gate → revision loop, then hands off to a human for review/finalize and an advisory `score_bunny`.
+- **`expert-qa-panel`** — convenes named marketing/business-design experts (Value Ladder & Offer Architecture wing: Brunson, Hormozi, Godin, Kern, Cialdini; Marketing wing: Kern, Berger) to critique a bunny's Phase-3 drafts and produce a Synthesis with top-3 recommendations and Unresolved Questions. Invoked by `bunny-deep-researcher`; can also be run standalone.
 
 ## Tools
 
