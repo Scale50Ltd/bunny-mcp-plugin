@@ -4,6 +4,23 @@ Orientation + tools for operating **Project Bunny** from Claude Code (and a docu
 
 > The plugin contains **no secret**. You supply your Bunny token yourself via an environment variable (below).
 
+## Skills
+
+- **`bunny-operator`** — core orientation: find/add/promote/delete bunnies, the research loop, the hard rules. Read this first.
+- **`bunny-deep-researcher`** — Phase-3 (EVIDENCE) playbook: writes the four Phase-3 documents (`deep_research`, `marketing_plan`, `value_ladder`, `final_evaluation_rubric`) from live server templates, one Sonnet sub-agent per document, then runs the Expert QA Panel → human decision gate → revision loop, then hands off to a human for review/finalize and an advisory `score_bunny`.
+- **`expert-qa-panel`** — convenes named marketing/business-design experts (Value Ladder & Offer Architecture wing: Brunson, Hormozi, Godin, Kern, Cialdini; Marketing wing: Kern, Berger) to critique a bunny's Phase-3 drafts and produce a Synthesis with top-3 recommendations and Unresolved Questions. Invoked by `bunny-deep-researcher`; can also be run standalone.
+
+## Tools
+
+The MCP server exposes (non-exhaustive — treat the live `tools/list` response as the source of truth):
+
+- **`find_bunnies`**, **`get_bunny_context`**, **`get_documents`** — read tools. `get_bunny_context` also returns a `playbook` object (`missingInOrder`, `nextEligible`) describing what Phase-3 document to write next.
+- **`get_template({ kind })`** — fetches a document template. Returns `{ found: true, id, name, phase, outputType, version, body }` on a hit (`body` is the section structure to follow exactly) or `{ found: false, kind, resolvedOutputType }` on a miss (normal — not every kind has a template). Pass the returned `id`/`version` back to `save_document` as `templateId`/`templateVersion`.
+- **`save_document({ bunnyId, kind, phase, markdown, title?, confirmOverwrite?, templateId?, templateVersion? })`** — writes a draft only. `templateId`/`templateVersion` record provenance against the template used. If a `final` document of this kind already exists, the save is refused with `would_overwrite_final` unless `confirmOverwrite: true` — only pass that after a human explicitly asks to replace an approved doc.
+- **`score_bunny({ bunnyId })`** — advisory scoring, re-runnable, never advances anything.
+- **`add_bunny`**, **`promote_bunny`**, **`delete_bunny`**, **`restore_bunny`** — lifecycle tools (see `bunny-operator`).
+- **`finalize_document`**, and advancing a bunny past phase 3, are **human-only** — no skill in this plugin calls them.
+
 ## Claude Code — install
 
 1. **Set your token** in your shell profile (`~/.zshrc` or `~/.bashrc`), then restart your shell:
