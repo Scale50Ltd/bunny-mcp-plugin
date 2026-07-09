@@ -7,7 +7,7 @@ Orientation + tools for operating **Project Bunny** from Claude Code (and a docu
 ## Skills
 
 - **`bunny-operator`** — core orientation: find/add/promote/delete bunnies, the research loop, the hard rules. Read this first.
-- **`bunny-deep-researcher`** — Phase-3 (EVIDENCE) playbook: writes the four Phase-3 documents (`deep_research`, `marketing_plan`, `value_ladder`, `final_evaluation_rubric`) from live server templates, one Sonnet sub-agent per document, then runs the Expert QA Panel → human decision gate → revision loop, then hands off to a human for review/finalize and an advisory `score_bunny`.
+- **`bunny-deep-researcher`** — Phase-3 (EVIDENCE) playbook: writes the four Phase-3 documents (`deep_research`, `marketing_plan`, `value_ladder`, `final_evaluation_rubric` — now a **required** doc) from live server templates, one Sonnet sub-agent per document, then runs the Expert QA Panel → human decision gate → revision loop, then hands off to a human for review/finalize and an advisory `score_bunny({ kind: 'final' })` — the final-evaluation score the Phase 3 → 4 gate reads. The skill never calls `greenlight_bunny` on its own evaluation; a human fires that gate.
 - **`expert-qa-panel`** — convenes named marketing/business-design experts (Value Ladder & Offer Architecture wing: Brunson, Hormozi, Godin, Kern, Cialdini; Marketing wing: Kern, Berger) to critique a bunny's Phase-3 drafts and produce a Synthesis with top-3 recommendations and Unresolved Questions. Invoked by `bunny-deep-researcher`; can also be run standalone.
 
 ## Tools
@@ -18,8 +18,8 @@ The MCP server exposes (non-exhaustive — treat the live `tools/list` response 
 - **`get_template({ kind })`** — fetches a document template. Returns `{ found: true, id, name, phase, outputType, version, body }` on a hit (`body` is the section structure to follow exactly) or `{ found: false, kind, resolvedOutputType }` on a miss (normal — not every kind has a template). Pass the returned `id`/`version` back to `save_document` as `templateId`/`templateVersion`.
 - **`save_document({ bunnyId, kind, phase, markdown, title?, confirmOverwrite?, templateId?, templateVersion? })`** — writes a draft only. `templateId`/`templateVersion` record provenance against the template used. If a `final` document of this kind already exists, the save is refused with `would_overwrite_final` unless `confirmOverwrite: true` — only pass that after a human explicitly asks to replace an approved doc.
 - **`score_bunny({ bunnyId, kind? })`** — advisory scoring over a bunny's live docs; `kind` is `"screening"` (default) or `"final"`. Re-runnable, never advances anything. A bunny carries two scores (screening + final).
-- **`add_bunny`**, **`screen_bunny`**, **`greenlight_bunny`**, **`delete_bunny`**, **`restore_bunny`** — lifecycle tools (see `bunny-operator`). `screen_bunny` enters Phase 2 (generates first-pass docs + runs the initial rubric); `greenlight_bunny` advances a parked build/research bunny Phase 2 → 3.
-- **`finalize_document`**, and self-advancing a bunny (`screen_bunny`, `greenlight_bunny`, the 3 → 4 conveyor), are **human-decided** — the operator calls the gate tools only on the user's explicit command, never autonomously.
+- **`add_bunny`**, **`screen_bunny`**, **`greenlight_bunny`**, **`delete_bunny`**, **`restore_bunny`** — lifecycle tools (see `bunny-operator`). `screen_bunny` enters Phase 2 (generates first-pass docs + runs the initial rubric). `greenlight_bunny` is **unified**: it advances a bunny past whichever human gate it's parked at — Phase 2 → 3, or **Phase 3 → 4** (the final-evaluation gate, once Phase-3 docs — including the now-required `final_evaluation_rubric` — are finalized and a final score exists). `overrideKill: true` forces a `kill` verdict through; at Phase 3 without it, a `kill` final verdict returns `blocked_kill`, and unmet preconditions return `not_greenlightable` with `needs_final_docs` / `needs_final_score`.
+- **`finalize_document`** and every self-advancing gate (`screen_bunny`, `greenlight_bunny` at either Phase 2 → 3 or Phase 3 → 4) are **human-decided** — the operator calls the gate tools only on the user's explicit command, never autonomously, and never to bless its own evaluation.
 
 ## Claude Code — install
 
@@ -81,4 +81,4 @@ Bug fixes and playbook changes ship by updating this repo. In Claude Code, re-ru
 
 - This is a **shared service token**: there is no per-user revocation. If it leaks, rotate `REPORT_SERVICE_TOKEN` in Vercel — that invalidates **all** operators at once.
 - Never commit the token. Never put it in a project `.claude/settings.json`.
-- The token grants the bearer the ability to call every Bunny tool, including `finalize_document` (which advances a bunny). By process, **only a human blesses** documents — keep a human in the loop.
+- The token grants the bearer the ability to call every Bunny tool, including `finalize_document` (blesses a document) and `greenlight_bunny` (opens a human gate, advancing a bunny). By process, **only a human blesses and greenlights** — keep a human in the loop.

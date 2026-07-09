@@ -334,17 +334,19 @@ NON-NEGOTIABLE RULES:
 
 Once all four drafts — the three revised deliverable documents plus `final_evaluation_rubric` — exist, **STOP**. Tell the human:
 - Which documents are drafted and ready for review (note that the three deliverable documents carry the panel's and the human's own revisions).
+- That `final_evaluation_rubric` is now a **required** Phase-3 document — it, along with the other three, must be `final` before the Phase 3 → 4 gate can open.
 - That they need to review and `finalize_document` each one in Bunny OS.
 
 You (the orchestrating session, and every sub-agent) must **never** call `finalize_document` or `greenlight_bunny`. Those are human-only, always — even if the token you're holding is technically capable of calling them.
 
 ## 10. Scoring
 
-After the human has finalized the documents:
+After the human has finalized the documents — including `final_evaluation_rubric`:
 
-1. Call **`score_bunny({ bunnyId })`**. It's advisory, re-runnable, and never advances anything. It reads finalized docs preferentially, falling back to drafts (marked PROVISIONAL) if some aren't final yet.
+1. Call **`score_bunny({ bunnyId, kind: 'final' })`**. This is the Phase-3 **final-evaluation** score, distinct from the Phase-2 screening score, and it's what the Phase 3 → 4 gate reads. It's advisory, re-runnable, and never advances anything. It reads finalized docs preferentially, falling back to drafts (marked PROVISIONAL) if some aren't final yet.
 2. **Sync-lag is expected, not an error** (Eloise's playbook, Failure Mode 3): right after a human finalizes documents in Bunny OS, `score_bunny` may still return a PROVISIONAL score, or the score may fluctuate slightly between calls, for several minutes while finalization propagates. Do not treat this as a bug and do not aggressively retry — wait roughly 5–10 minutes and re-run once.
 3. Present the score/verdict to the human plainly, including if it's still PROVISIONAL. The human decides whether and when to advance the bunny — you never do.
+4. **Then STOP and hand off — do not call `greenlight_bunny` yourself.** Once `final_evaluation_rubric` is finalized and the final score exists, the bunny is eligible for the Phase 3 → 4 gate — but firing `greenlight_bunny` is always a human's (or a human's own operator session's) action, never the agent that just wrote the research, ran the panel, or scored the evaluation. You do not bless your own work, and that includes not greenlighting your own final evaluation.
 
 ## 11. Resilience
 
@@ -363,6 +365,7 @@ From Eloise's playbook (Failure Modes 1–2), adapted:
 5. **Never advance the bunny.** A human finalizes each document and decides on advancement — that is never this skill's job, no matter how confident the draft, the panel, or the score.
 6. **The named mechanism is never agent-invented.** If the Expert QA Panel flags a missing or weak named mechanism, that Unresolved Question goes to the human decision gate — an agent does not name it unilaterally.
 7. **`confirmOverwrite` is a human-authorized action only.** No sub-agent in this skill — including the revision agents — passes `confirmOverwrite: true` on its own judgment.
+8. **Never greenlight the evaluation you just wrote.** After `score_bunny({ kind: 'final' })` returns — even a clean, confident verdict — this skill never calls `greenlight_bunny`. The Phase 3 → 4 gate exists precisely so a human (not the agent that authored the research, the panel critique, or the final score) decides whether the evaluation holds up. Stop and hand off; do not self-approve.
 
 ## 13. v2 — implemented
 
