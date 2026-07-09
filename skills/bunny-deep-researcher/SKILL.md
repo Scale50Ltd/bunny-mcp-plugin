@@ -93,7 +93,7 @@ Call save_document({
   templateId: <template id from Step 1>, templateVersion: <template version from Step 1>
 }).
 Then STOP. Hand off to the human for review — do not call finalize_document or
-promote_bunny, and do not proceed to another document yourself.
+greenlight_bunny, and do not proceed to another document yourself.
 
 NON-NEGOTIABLE RULES:
 - Never fabricate statistics, quotes, or user counts.
@@ -132,7 +132,7 @@ Call save_document({
   templateId: <template id from Step 1>, templateVersion: <template version from Step 1>
 }).
 Then STOP. Hand off to the human for review — do not call finalize_document or
-promote_bunny, and do not proceed to another document yourself.
+greenlight_bunny, and do not proceed to another document yourself.
 
 NON-NEGOTIABLE RULES:
 - Never fabricate metrics, testimonials, or user counts.
@@ -170,7 +170,7 @@ Call save_document({
   templateId: <template id from Step 1>, templateVersion: <template version from Step 1>
 }).
 Then STOP. Hand off to the human for review — do not call finalize_document or
-promote_bunny, and do not proceed to another document yourself.
+greenlight_bunny, and do not proceed to another document yourself.
 
 NON-NEGOTIABLE RULES:
 - Never invent a price, guarantee term, or bonus without a stated rationale.
@@ -271,7 +271,7 @@ Call save_document({
   bunnyId: bunny_id, kind: "{document_type}", phase: 3, markdown: <full revised document>
 }).
 Then STOP. Hand off to the human for re-review — do not call finalize_document
-or promote_bunny, and do not proceed to another document yourself.
+or greenlight_bunny, and do not proceed to another document yourself.
 
 NON-NEGOTIABLE RULES:
 - Do not fabricate any new statistic, quote, or user count while revising.
@@ -321,7 +321,7 @@ Call save_document({
   templateId: <template id from Step 1>, templateVersion: <template version from Step 1>
 }).
 Then STOP. Hand off to the human for review and sign-off — do not call
-finalize_document, score_bunny, or promote_bunny yourself.
+finalize_document, score_bunny, or greenlight_bunny yourself.
 
 NON-NEGOTIABLE RULES:
 - Never fabricate a citation — every dimension score must point to real content in
@@ -336,7 +336,7 @@ Once all four drafts — the three revised deliverable documents plus `final_eva
 - Which documents are drafted and ready for review (note that the three deliverable documents carry the panel's and the human's own revisions).
 - That they need to review and `finalize_document` each one in Bunny OS.
 
-You (the orchestrating session, and every sub-agent) must **never** call `finalize_document` or `promote_bunny`. Those are human-only, always — even if the token you're holding is technically capable of calling them.
+You (the orchestrating session, and every sub-agent) must **never** call `finalize_document` or `greenlight_bunny`. Those are human-only, always — even if the token you're holding is technically capable of calling them.
 
 ## 10. Scoring
 
@@ -359,7 +359,7 @@ From Eloise's playbook (Failure Modes 1–2), adapted:
 1. **Never fabricate** statistics, quotes, competitor user counts, or sources. If something is unknown, say so plainly.
 2. **Never cite competitor user counts** — they're not verifiable and get adversarially refuted.
 3. **Clinical/factual accuracy over persuasiveness** for sensitive audiences — never claim an unearned credential, advisor review, or professional endorsement the bunny's evidence doesn't actually support. Default to removing such claims (Section 6).
-4. **`save_document` writes drafts only.** No sub-agent, and no orchestrating session, ever calls `finalize_document` or `promote_bunny`.
+4. **`save_document` writes drafts only.** No sub-agent, and no orchestrating session, ever calls `finalize_document` or `greenlight_bunny`.
 5. **Never advance the bunny.** A human finalizes each document and decides on advancement — that is never this skill's job, no matter how confident the draft, the panel, or the score.
 6. **The named mechanism is never agent-invented.** If the Expert QA Panel flags a missing or weak named mechanism, that Unresolved Question goes to the human decision gate — an agent does not name it unilaterally.
 7. **`confirmOverwrite` is a human-authorized action only.** No sub-agent in this skill — including the revision agents — passes `confirmOverwrite: true` on its own judgment.

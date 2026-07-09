@@ -17,9 +17,9 @@ The MCP server exposes (non-exhaustive — treat the live `tools/list` response 
 - **`find_bunnies`**, **`get_bunny_context`**, **`get_documents`** — read tools. `get_bunny_context` also returns a `playbook` object (`missingInOrder`, `nextEligible`) describing what Phase-3 document to write next.
 - **`get_template({ kind })`** — fetches a document template. Returns `{ found: true, id, name, phase, outputType, version, body }` on a hit (`body` is the section structure to follow exactly) or `{ found: false, kind, resolvedOutputType }` on a miss (normal — not every kind has a template). Pass the returned `id`/`version` back to `save_document` as `templateId`/`templateVersion`.
 - **`save_document({ bunnyId, kind, phase, markdown, title?, confirmOverwrite?, templateId?, templateVersion? })`** — writes a draft only. `templateId`/`templateVersion` record provenance against the template used. If a `final` document of this kind already exists, the save is refused with `would_overwrite_final` unless `confirmOverwrite: true` — only pass that after a human explicitly asks to replace an approved doc.
-- **`score_bunny({ bunnyId })`** — advisory scoring, re-runnable, never advances anything.
-- **`add_bunny`**, **`promote_bunny`**, **`delete_bunny`**, **`restore_bunny`** — lifecycle tools (see `bunny-operator`).
-- **`finalize_document`**, and advancing a bunny past phase 3, are **human-only** — no skill in this plugin calls them.
+- **`score_bunny({ bunnyId, kind? })`** — advisory scoring over a bunny's live docs; `kind` is `"screening"` (default) or `"final"`. Re-runnable, never advances anything. A bunny carries two scores (screening + final).
+- **`add_bunny`**, **`screen_bunny`**, **`greenlight_bunny`**, **`delete_bunny`**, **`restore_bunny`** — lifecycle tools (see `bunny-operator`). `screen_bunny` enters Phase 2 (generates first-pass docs + runs the initial rubric); `greenlight_bunny` advances a parked build/research bunny Phase 2 → 3.
+- **`finalize_document`**, and self-advancing a bunny (`screen_bunny`, `greenlight_bunny`, the 3 → 4 conveyor), are **human-decided** — the operator calls the gate tools only on the user's explicit command, never autonomously.
 
 ## Claude Code — install
 
