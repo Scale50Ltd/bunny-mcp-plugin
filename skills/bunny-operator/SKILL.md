@@ -1,6 +1,6 @@
 ---
 name: bunny-operator
-description: Operate Project Bunny — find, add, screen, research, draft, greenlight, score, and delete "bunnies" (candidate solutions to build) via the Bunny MCP tools. Use when the user asks to work on a bunny, add/create a bunny from an idea, screen a bunny (generate its Phase-2 docs + run the initial rubric), do Phase-3 / deep research on a bunny, greenlight a bunny to Phase 3, score/re-score a bunny, delete/restore a bunny, look at Project Bunny ideas, or mentions Project Bunny / the Bunny Trail.
+description: Operate Project Bunny — find, add, screen, research, draft, greenlight, score, and delete "bunnies" (candidate solutions to build) via the Bunny MCP tools. Use when the user asks to work on a bunny, add/create a bunny from an idea, screen a bunny (generate its Phase-2 docs + run the initial rubric), do Phase-3 / deep research on a bunny, write Phase-4 shaping docs (brand voice/identity, copywriter brief, backend component plan), work a Phase-5 build order or asset/build spec, greenlight a bunny, score/re-score a bunny, delete/restore a bunny, look at Project Bunny ideas, or mentions Project Bunny / the Bunny Trail.
 ---
 
 # Operating Project Bunny
@@ -16,8 +16,9 @@ Bunnies travel an 11-phase trail. The early phases are now **gated stations**, n
 | 1 | TRIAGE | **the dossier / waiting room** — a bunny rests here after a cheap structural prefilter; nothing is generated yet |
 | 2 | SCREENING | **gated** — `screen_bunny` generates the first-pass docs + runs the initial screening rubric |
 | 3 | EVIDENCE | **live** — deep research happens here |
-| 4 | SHAPING | **live** |
-| 5–11 | SPEC, BUILD, HARDENING, LAUNCH, GROWTH, SCALE, EXIT | **sealed** (not built; never pretend otherwise) |
+| 4 | SHAPING | **live** — `brand_voice`, `brand_identity`, `copywriter_brief`, `backend_component_plan` |
+| 5 | SPEC | **live** — the build order, the supporting docs, and the **assets** (the actual products) |
+| 6–11 | BUILD, HARDENING, LAUNCH, GROWTH, SCALE, EXIT | **sealed** (not built; never pretend otherwise) |
 
 ## How a bunny moves (the gated flow)
 ```
@@ -31,7 +32,10 @@ capture → cheap PREFILTER (structural hard-kills)
         → greenlight_bunny → PHASE 3 (EVIDENCE) → your deep-research loop
         → human finalizes all Phase-3 docs (incl. required final_evaluation_rubric) → PARKED at Phase 3, awaiting a human greenlight
         → score_bunny(kind:'final') → greenlight_bunny → PHASE 4 (SHAPING)
+        → human finalizes all 4 Phase-4 docs → PHASE 5 (SPEC) — automatic, NO greenlight call
+        → PHASE 5 work → parks here (phase 6 is sealed, so nothing advances past 5 today)
 ```
+Note the shape change at the end: **4 → 5 has no human gate tool.** Phase 4 completes the moment a human finalizes its four documents, and the bunny advances on its own. Don't look for a `greenlight_bunny` call there — it isn't one, and offering it will confuse the user.
 Whether a captured bunny **auto-enters** screening is governed by a global **Auto-screen** valve (default **OFF**) — when off, a human sends bunnies into screening deliberately. You don't toggle that; you just screen the specific bunny the user asks you to.
 
 ## Your research loop (the core job — Phase 3)
@@ -39,6 +43,21 @@ Whether a captured bunny **auto-enters** screening is governed by a global **Aut
 2. **Do the work** grounded in that context (and real research).
 3. **`save_document`** — this writes an **agent-authored draft**. That is the only document write you make.
 4. **Stop and hand off.** Tell the human it's ready for review. Once the required Phase-3 documents (including `final_evaluation_rubric`) are finalized and a final score exists (`score_bunny({ kind: 'final' })`), **a human** fires `greenlight_bunny` to advance the bunny 3 → 4. You never call `greenlight_bunny` yourself — not even on your own evaluation.
+
+## Phase 4 (SHAPING)
+Four documents, written the same way as Phase 3 — read context, fetch the template, `save_document` a draft, stop. They chain: `brand_voice` first, then `brand_identity` and `copywriter_brief` off it, then `backend_component_plan`. When a human finalizes all four the bunny advances to Phase 5 by itself.
+
+## Phase 5 (SPEC)
+Phase 5 is where a bunny's actual products get built, and it is shaped differently from every phase before it: **a bunny here ships N products, not one document set.** Each product is an *asset* — its own row, its own owner, its own build spec, its own human sign-off. N is decided per bunny by the build order, not fixed.
+
+Your loop:
+1. **Read first**, as always — `get_bunny_context` + `get_documents` for the `build_order` (and `evidence_base` / `generation_framework` / `tech_spec` where the bunny's vehicles need them; only `build_order` is required, since the other three apply solely to vehicles that generate personalized content or depend on a pipeline).
+2. **`list_assets`** to see what is already being built. Don't duplicate an asset that exists.
+3. **Check for an existing vehicle protocol before writing one.** Call `get_template` with `vehicleType` (not `kind`) — protocols are keyed by vehicle type and shared across every bunny that ships that type. Reuse or extend; duplicating one throws away the whole point of the layer.
+4. **Write** — Phase-5 documents via `save_document`, asset records via `save_asset`.
+5. **Stop.**
+
+**About sign-off, which is the thing this phase turns on.** Completing Phase 5 means a named human signs off every MVP-flagged asset. No tool here can do that, set it, or clear it, in any form — and there is no dashboard control for it yet either. Two consequences you must not paper over: never offer to sign off, and never ask a human to relay a sign-off through you, because there is nowhere to point them. Also, a bunny parks at Phase 5 regardless: phase 6 is unmanaged, so nothing advances past it today.
 
 ## Managing the bunny lifecycle
 Beyond research, these tools drive the trail. The screen/greenlight/promote-style and delete tools act **on the user's behalf** — **ask the user first and only act on an explicit yes** (the server cannot verify consent; the discipline is yours).
@@ -49,13 +68,16 @@ Beyond research, these tools drive the trail. The screen/greenlight/promote-styl
 - **`score_bunny`** — a **separate, advisory** rubric run over a bunny's live documents. It takes an optional `kind` (`"screening"` | `"final"`, default `"screening"`). The **screening** score is normally produced by `screen_bunny`; call `score_bunny` to **re-run** it (e.g. after documents change). It is **re-runnable** and **never advances, screens out, or blesses anything** — the verdict is advice for a human, not a gate. Scoring before the docs are finalized returns a **provisional** result. A bunny now carries **two** scores — its screening score and (later) its final-evaluation score — so be clear which one you're reading or running.
 - **`delete_bunny`** — **confirm with the user first.** Soft-deletes (archives) a bunny: it disappears from search, the cockpit views, and duplicate detection, but **no data is destroyed**. Fully reversible.
 - **`restore_bunny`** — un-archives a previously deleted bunny so it reappears.
+- **`list_assets`** — read tool. Every asset a Phase-5 bunny is shipping, with its owner, MVP flag, product status (`started` → `mvp` → `mvp_plus` → `full_build`) and whether it has been signed off. Read this before creating anything.
+- **`save_asset`** — creates an asset, or updates an existing one's mutable fields (name, owner, MVP flag, product status, build-spec markdown, asset URL) when you pass `assetId`. `bunnyId` and `vehicleType` are fixed at creation: sending them on an update is refused with `immutable_field` rather than silently ignored. It **cannot** touch sign-off in any form — there is no field for it.
 
 ## The hard rules (non-negotiable)
 1. **Read `get_bunny_context` before doing or writing research on an existing bunny.**
 2. **For documents, you only write drafts.** `save_document` is your single document write; it always produces a draft.
 3. **You never bless your own work and never self-advance.** Every gate is the human's: `screen_bunny` (enter Phase 2), `greenlight_bunny` (the unified gate — Phase 2 → 3, **or** Phase 3 → 4 at the final-evaluation gate), and `finalize_document → final` are all allowed **only on the user's explicit command — never autonomously, and never to advance your own research**. The token can reach these; the discipline that they're human-decided is yours.
 4. **No fabrication.** Ground every claim in the bunny's real evidence/provenance or in real research you actually did. If something is unknown, say so plainly. Never invent reviews, numbers, competitors, or sources.
-5. **Phase-3 documents follow templates fetched live from the MCP.** Call the **`get_template`** tool for the doc kind you're about to write and use its returned `body` as the section structure — never a local DOCX, and never a structure you invented. A `found: false` response is normal for some kinds; don't treat it as an error. Templates are server-owned and versioned, so read them fresh each time. For Phase-3 deep-research work specifically, use the **`bunny-deep-researcher`** skill, which builds the full EVIDENCE-phase loop on top of this rule.
+5. **Documents follow templates fetched live from the MCP.** Call the **`get_template`** tool for the doc kind you're about to write and use its returned `body` as the section structure — never a local DOCX, and never a structure you invented. Templates exist for Phase-2, -3, -4 and -5 kinds. A `found: false` response is normal for some kinds; don't treat it as an error. Templates are server-owned and versioned, so read them fresh each time. In Phase 5, `get_template` also takes a **`vehicleType`** instead of a `kind` — that is how you find an existing vehicle protocol before writing a new one. For Phase-3 deep-research work specifically, use the **`bunny-deep-researcher`** skill, which builds the full EVIDENCE-phase loop on top of this rule.
+6. **Asset sign-off is human-only and has no MCP path whatsoever.** No tool sets it, clears it, or accepts it as a field, and no dashboard surface exists for it yet. Never attempt it, never propose it, and never invent a workaround — including asking a human to hand you one to record.
 
 ## Defer to the live system
 Do **not** rely on a hardcoded list of tools, document kinds, or per-phase requirements from this skill — those evolve. Always read the **live** answers from the MCP: the available tools and their arguments, and `get_bunny_context`'s `missing` list for "what this bunny still needs." This skill teaches the stable process; the server is the source of truth for specifics.
